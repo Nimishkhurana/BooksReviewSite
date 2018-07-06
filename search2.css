@@ -13,7 +13,7 @@
 /* Create the hidden pseudo-element */
 /* include the shadow for the end state */
 .box::after {
-  content: '';
+
   position: absolute;
   z-index: -1;
   width: 100%;

@@ -51,13 +51,14 @@ def signin():
     email = request.form["login-email"]
     password = request.form["login-password"]
 
-    user_id = (db.execute("SELECT * FROM users WHERE email = :email AND password = :password",
-    {"email":email,"password":password}).fetchone())["user_id"]
+    user = db.execute("SELECT * FROM users WHERE email = :email AND password = :password",
+    {"email":email,"password":password}).fetchone()
 
-    if user_id is None:
+    if user is None:
         error = "Invalid Credentials"
         return render_template("signup.html",error=error)
 
+    user_id = user["user_id"]
     session["user_id"] = user_id
     return redirect(url_for("search"))
 
@@ -84,13 +85,14 @@ def searching():
     search_book = request.form.get("search_book")
     ## Searching matching books
     books = db.execute(f'SELECT * FROM books WHERE {search_by} LIKE :search_book',{"search_book":f"%{search_book}%"}).fetchall()
+    rows = db.execute(f'SELECT * FROM books WHERE {search_by} LIKE :search_book',{"search_book":f"%{search_book}%"}).rowcount
+
+    if rows == 0:
+        return jsonify({"success":False,"error":"No book found"})
+
     for book in books:
         titles.append(book["title"])
         authors.append(book["author"])
-
-
-    if books is None:
-        return jsonify({"success":False,"error":"No book found"})
     return jsonify({"success":True,"titles":titles,"authors":authors})
 
 

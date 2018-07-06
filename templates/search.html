@@ -41,6 +41,7 @@
             request.send(addon);
 
             request.onload = function() {
+              document.querySelector('#books').innerHTML = '';
               const data = JSON.parse(this.responseText);
               const titles = data["titles"]
               const authors = data["authors"]
@@ -53,7 +54,7 @@
                 }
               }
               else {
-                const content = data["error"];
+                const content = template({"title":"No book found","author":""})
                 document.querySelector('#books').innerHTML += content;
               }
 
