@@ -88,12 +88,12 @@ def searching():
     rows = db.execute(f'SELECT * FROM books WHERE {search_by} LIKE :search_book',{"search_book":f"%{search_book}%"}).rowcount
 
     if rows == 0:
-        return jsonify({"success":False,"error":"No book found"})
+        return jsonify({"success":False,"message":"No book found"})
 
     for book in books:
         titles.append(book["title"])
         authors.append(book["author"])
-    return jsonify({"success":True,"titles":titles,"authors":authors})
+    return jsonify({"success":True,"titles":titles,"authors":authors,"message":"Matching books:"})
 
 
 

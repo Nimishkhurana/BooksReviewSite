@@ -17,7 +17,7 @@
 
     <div class="box">
       <strong>{{title}}</strong>
-      <em>{{{ author }}}</em>
+      <em id="author">{{{ author }}}</em>
     </div>
 
 
@@ -43,20 +43,25 @@
             request.onload = function() {
               document.querySelector('#books').innerHTML = '';
               const data = JSON.parse(this.responseText);
-              const titles = data["titles"]
-              const authors = data["authors"]
-              console.log(titles);
+
+              const message = data["message"]
+
+
+              document.querySelector('#message').innerHTML = message;
               if (data["success"]) {
+                const titles = data["titles"]
+                const authors = data["authors"]
+                console.log(titles);
                 for(var i=0;i<titles.length;i++)
                 {
                   const content = template({"title":titles[i],"author":authors[i]});
                   document.querySelector('#books').innerHTML += content;
                 }
               }
-              else {
-                const content = template({"title":"No book found","author":""})
-                document.querySelector('#books').innerHTML += content;
-              }
+              // else {
+              //   const content = data["error"];
+              //   document.querySelector('#books').innerHTML += content;
+              // }
 
 
 
@@ -105,8 +110,11 @@
 
   </nav>
 
+  <br>
 
+  <strong id="message"></strong>
   <div id="books">
+
 
   </div>
 
