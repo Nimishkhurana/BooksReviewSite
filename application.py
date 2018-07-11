@@ -81,10 +81,11 @@ def logout():
 def searching():
     titles = []
     authors = []
+    ids = []
     search_by = request.form.get("search_by")
     search_book = request.form.get("search_book")
     ## Searching matching books
-    books = db.execute(f'SELECT * FROM books WHERE {search_by} LIKE :search_book',{"search_book":f"%{search_book}%"}).fetchall()
+    books = db.execute(f'SELECT * FROM books WHERE {search_by} LIKE :search_book ORDER BY title,author,year',{"search_book":f"%{search_book}%"}).fetchall()
     rows = db.execute(f'SELECT * FROM books WHERE {search_by} LIKE :search_book',{"search_book":f"%{search_book}%"}).rowcount
 
     if rows == 0:
@@ -93,10 +94,59 @@ def searching():
     for book in books:
         titles.append(book["title"])
         authors.append(book["author"])
-    return jsonify({"success":True,"titles":titles,"authors":authors,"message":"Matching books:"})
+        ids.append(book["id"])
+    return jsonify({"success":True,"ids":ids,"titles":titles,"authors":authors,"message":"Matching books:"})
+
+@app.route("/details/<int:book_id>")
+def details(book_id):
+    # return f"Book id is {book_id}"
+    book_data = db.execute("SELECT * FROM books WHERE id = :book_id",{"book_id":book_id}).fetchone()
+    book = {"isbn":book_data[1],"title":book_data[2],"author":book_data[3],"year":book_data[4]}
+
+    avg_rating_count = db.execute("SELECT AVG(rating),COUNT(rating) FROM book_reviews WHERE id_book = :book_id",{"book_id":book_id}).fetchone()
+    avg,total_count = avg_rating_count[0],avg_rating_count[1]
+
+
+    ratings_count = {}
+    ratings = db.execute("SELECT rating,count(rating) FROM book_reviews WHERE id_book = :book_id GROUP BY rating",{"book_id":book_id}).fetchall()
+
+    # ratings_count => stars count
+    for a in ratings:
+        ratings_count[a[0]] = a[1]
+    for i in range(1,6):
+        if i not in ratings_count:
+            ratings_count[i] = 0
+
+
+    all_reviews = db.execute("SELECT users.username,book_reviews.rating,book_reviews.date_posted,book_reviews.text_review FROM book_reviews JOIN users ON book_reviews.id_user = users.user_id  WHERE book_reviews.id_book = :book_id",{"book_id":book_id}).fetchall();
+
+    individual_reviews = []
+
+    for review in all_reviews:
+        if review[3] != None:
+            areview = {}
+            areview["username"] = review[0]
+            areview["rating"] = review[1]
+            areview["date"] = review[2].strftime("%d %b %Y")
+            areview["text_review"]  = review[3]
+            individual_reviews.append(areview)
+
+    res = requests.get("https://www.goodreads.com/book/review_counts.json", params={"key": "sm2j54RqyCDvbeHG2QBtw", "isbns": "9781632168146"})
+
+    if res.status_code !=200:
+        goodreads = {"success":False,"error":"No reviews found from external sources"}
+    else :
+        goodreads = {"success":True,"count":(res.json())["books"][0]["work_reviews_count"],"avg_rating":(res.json())["books"][0]["average_rating"]}
+
+    complete_reviews = {"avg":avg,"total_count":total_count,"ratings_count":ratings_count,"individual_reviews":individual_reviews,"goodreads":goodreads}
+
+    return render_template("details.html",book = book,complete_reviews = complete_reviews)
 
 
 
+
+
+# insert into book_reviews (id_book,id_user,rating,text_review) values (1,4,3,"Good book to read .It incresed my knowledge very much.");
 
 
 
