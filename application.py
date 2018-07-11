@@ -1,9 +1,14 @@
-from flask import Flask,render_template,request,session,redirect,url_for,jsonify
+from flask import Flask,render_template,request,session,redirect,url_for,jsonify,json
 from flask_session import Session
-import os
+import os,decimal
 import requests
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
+
+def decimal_default(obj):
+    if isinstance(obj, decimal.Decimal):
+        return float(obj)
+    raise TypeError
 
 
 app = Flask(__name__)
@@ -106,6 +111,11 @@ def details(book_id):
     avg_rating_count = db.execute("SELECT AVG(rating),COUNT(rating) FROM book_reviews WHERE id_book = :book_id",{"book_id":book_id}).fetchone()
     avg,total_count = avg_rating_count[0],avg_rating_count[1]
 
+    if total_count == None:
+        total_count = 0
+
+
+
 
     ratings_count = {}
     ratings = db.execute("SELECT rating,count(rating) FROM book_reviews WHERE id_book = :book_id GROUP BY rating",{"book_id":book_id}).fetchall()
@@ -140,7 +150,7 @@ def details(book_id):
 
     complete_reviews = {"avg":avg,"total_count":total_count,"ratings_count":ratings_count,"individual_reviews":individual_reviews,"goodreads":goodreads}
 
-    return render_template("details.html",book = book,complete_reviews = complete_reviews)
+    return render_template("details.html",book = book,complete_reviews = json.dumps(complete_reviews,default = decimal_default))
 
 
 
