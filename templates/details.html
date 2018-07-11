@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title></title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" integrity="sha384-WskhaSGFgHYWDcbwN70/dfYBj47jz9qbsMId/iRN3ewGhXQFZCSftd1LZCfmhktB" crossorigin="anonymous">
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
+
+    <link rel="stylesheet" href="{{url_for("static",filename="details.css")}}">
+    <!-- <script src="1.js" charset="utf-8"></script> -->
+  </head>
+
+  <body>
+
+      <div class="row">
+        <div class="col-4">
+          <div class="details">
+          <div id="heading">Book details</div>
+          <br>
+
+
+
+          <ul  class="list-group list-group-flush ">
+            <li class="list-group-item"><strong>Title:</strong> {{book.title}}</li>
+            <li class="list-group-item"><strong>ISBN:</strong> {{book.isbn}}</li>
+            <li class="list-group-item"><strong>Author:</strong> {{book.author}}</li>
+            <li class="list-group-item"><strong>Year published:</strong> {{book.year}}</li>
+
+
+          </ul>
+          </div>
+        </div>
+        <div class="col-8">
+          <div class="ratings">
+
+
+          <span class="heading">User Rating</span>
+            <div id="total_outer" class="stars-outer">
+            <div id="total_inner" class="stars-inner"></div>
+
+          </div>
+          <p id = "display_avg"></p>
+          <hr style="border:3px solid #f1f1f1">
+
+        <div class="row">
+          <div class="side">
+            <div>5 star</div>
+          </div>
+          <div class="middle">
+            <div class="bar-container">
+              <div class="bar-5"></div>
+            </div>
+          </div>
+          <div id = "side5" class="side right">
+
+          </div>
+          <div class="side">
+            <div>4 star</div>
+          </div>
+          <div class="middle">
+            <div class="bar-container">
+              <div class="bar-4"></div>
+            </div>
+          </div>
+          <div id = "side4" class="side right">
+
+          </div>
+          <div class="side">
+            <div>3 star</div>
+          </div>
+          <div class="middle">
+            <div class="bar-container">
+              <div class="bar-3"></div>
+            </div>
+          </div>
+          <div id = "side3" class="side right">
+
+          </div>
+          <div class="side">
+            <div>2 star</div>
+          </div>
+          <div class="middle">
+            <div class="bar-container">
+              <div class="bar-2"></div>
+            </div>
+          </div>
+          <div id = "side2" class="side right">
+
+          </div>
+          <div class="side">
+            <div>1 star</div>
+          </div>
+          <div class="middle">
+            <div class="bar-container">
+              <div class="bar-1"></div>
+            </div>
+          </div>
+          <div id = "side1" class="side right">
+          </div>
+
+
+        </div>
+        </div>
+        <div class="comments">
+
+        </div>
+        </div>
+      </div>
+
+  {%raw%}
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.0.11/handlebars.min.js" charset="utf-8"></script>
+
+  <script id="review" type="text/x-handlebars-template">
+    <div>
+      <div><strong>{{individual_review.username}}</strong></div>
+      <div id="single_outer" class="stars-outer">
+        <div style="width:{{individual_starPercentageRounded}}" class="stars-inner"></div>
+      </div>
+      <p>{{individual_review.date}}</p>
+
+      <p>{{individual_review.text_review}}</p>
+      <hr>
+    </div>
+  </script>
+  {%endraw%}
+  <script src="{{ url_for("static",filename = "pseudojs.js")}}" charset="utf-8"></script>
+  <!-- <script src="{{ url_for("static",filename = "1.js")}}" charset="utf-8"></script> -->
+  <script type="text/javascript">
+  const details = {{complete_reviews|safe}};
+  console.log(details);
+
+  // -------------------------------------------------------------------
+  const starTotal = 5;
+  var rating = details.avg;
+  var filledStars = document.querySelector('#total_inner');
+  if(rating >3.5)
+    filledStars.pseudoStyle("before","color","green");
+  else if (rating <2) {
+    filledStars.pseudoStyle("before","color","red");
+  }
+  const starPercentage = (rating / starTotal) * 100;
+  const starPercentageRounded = `${(Math.round(starPercentage / 10) * 10)}%`;
+  filledStars.style.width = starPercentageRounded;
+
+// -------------------------------------------------------------------
+  const display_avg = document.querySelector('#display_avg');
+  if (details.total_count == 0)
+    display_avg.innerHTML = "No ratings"
+  else
+    display_avg.innerHTML = `${details.avg} average based on ${details.total_count} reviews`
+
+// -------------------------------------------------------------------
+
+  document.querySelector('#side5').innerHTML = details.ratings_count[5];
+  document.querySelector('#side4').innerHTML = details.ratings_count[4];
+  document.querySelector('#side3').innerHTML = details.ratings_count[3];
+  document.querySelector('#side2').innerHTML = details.ratings_count[2];
+  document.querySelector('#side1').innerHTML = details.ratings_count[1];
+
+// -------------------------------------------------------------------
+
+  document.querySelector('.bar-5').style.width = `${details.ratings_count[5]/details.total_count *100}%`;
+  document.querySelector('.bar-4').style.width = `${details.ratings_count[4]/details.total_count *100}%`;
+  document.querySelector('.bar-3').style.width = `${details.ratings_count[3]/details.total_count *100}%`;
+  document.querySelector('.bar-2').style.width = `${details.ratings_count[2]/details.total_count *100}%`;
+  document.querySelector('.bar-1').style.width = `${details.ratings_count[1]/details.total_count *100}%`;
+
+
+  // ---------------------------------------------------------------------------------
+
+  const template = Handlebars.compile(document.querySelector('#review').innerHTML);
+
+  details.individual_reviews.forEach(function (individual_review) {
+
+
+
+    var individual_rating = individual_review.rating;
+
+
+
+    const individual_starPercentage = (individual_rating / starTotal) * 100;
+    const individual_starPercentageRounded = `${(Math.round(individual_starPercentage / 10) * 10)}%`;
+    const content = template({"individual_review":individual_review,"individual_starPercentageRounded":individual_starPercentageRounded})
+
+    document.querySelector('.comments').innerHTML += content;
+
+
+  }
+  )
+
+  </script>
+
+  </body>
+</html>
