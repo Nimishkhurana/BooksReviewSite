@@ -31,25 +31,22 @@
   color: orange;
 }
 
-
-
 * {
     box-sizing: border-box;
 }
 
 .ratings {
 
+    background-color: #47d8ad;
     font-family: Arial;
     margin: 20px ; /* Center website */
     max-width: 800px; /* Max width */
 
     padding: 30px;
     border:3px solid #f1f1f1;
-
 }
 
 .heading {
-
     font-size: 25px;
     margin-right: 25px;
 }
@@ -62,6 +59,7 @@
 }
 
 .details {
+  background-color: #47d8ad;
   border: 1px solid #f1f1f1;
   padding-top: 20px;
   margin-top: 20px;

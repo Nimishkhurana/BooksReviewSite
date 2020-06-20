@@ -17,9 +17,8 @@ app.config['SESSION_PERMANENT'] = False
 app.config['SESSION_TYPE'] = "filesystem"
 Session(app)
 
-engine = create_engine(os.getenv("DATABASE_UR"))
+engine = create_engine(os.getenv("DATABASE_URL"))
 db = scoped_session(sessionmaker(bind=engine))
-
 
 @app.route("/")
 def home():
@@ -33,7 +32,6 @@ def signpage():
     else:
         return redirect(url_for("search"))
 
-
 @app.route("/signup",methods=["POST"])
 def signup():
     username = request.form.get("username")
@@ -41,12 +39,18 @@ def signup():
     password = request.form.get("signup_password")
 
     # inserting user data in database
+    user = db.execute("SELECT * FROM users WHERE email = :email",
+    {"email":email}).fetchone()
+
+    if user is not None:
+        return ("<h1>Email already exists</h1>")
 
     db.execute("INSERT INTO users (username,email,password) VALUES (:username,:email,:password)",
     {"username":username,"email":email,"password":password})
     db.commit()
 
-    user_id = db.execute("SELECT user_id FROM users WHERE email = :email",{"email":email}).fetchone()
+    user_id = db.execute("SELECT user_id FROM users WHERE email = :email",{"email":email}).fetchone()[0]
+    print(user_id)
     session["user_id"] = user_id
 
     return redirect(url_for("search"))
@@ -63,14 +67,15 @@ def signin():
         error = "Invalid Credentials"
         return render_template("signup.html",error=error)
 
-    user_id = user["user_id"]
+    user_id = user["user_id"][0]
     session["user_id"] = user_id
     return redirect(url_for("search"))
 
 @app.route("/search")
 def search():
     if "user_id" in session:
-        username = (db.execute("SELECT * FROM users WHERE user_id = :user_id",{"user_id":session["user_id"]}).fetchone())["username"]
+        print(session["user_id"])
+        username = db.execute("SELECT * FROM users WHERE user_id = :user_id",{"user_id":session["user_id"]}).fetchone()["username"]
         return render_template("search.html",username = username)
 
     return redirect(url_for("signpage"))
@@ -114,9 +119,6 @@ def details(book_id):
     if total_count == None:
         total_count = 0
 
-
-
-
     ratings_count = {}
     ratings = db.execute("SELECT rating,count(rating) FROM book_reviews WHERE id_book = :book_id GROUP BY rating",{"book_id":book_id}).fetchall()
 
@@ -151,8 +153,6 @@ def details(book_id):
     complete_reviews = {"avg":avg,"total_count":total_count,"ratings_count":ratings_count,"individual_reviews":individual_reviews,"goodreads":goodreads}
 
     return render_template("details.html",book = book,complete_reviews = json.dumps(complete_reviews,default = decimal_default))
-
-
 
 
 
