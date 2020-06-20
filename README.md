@@ -20,7 +20,7 @@ User can search any book and see its details, ratings and reviews submitted, and
 
 #### How to Run
 ```
-pip install -r requirements.txt
 cd BooksReviewSite
+pip install -r requirements.txt
 flask run
 ```
